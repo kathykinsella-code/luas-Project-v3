@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#07040f">
+<title>myLUAS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Limelight&family=Poiret+One&family=Josefin+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #07040f;
+    --bg2: #120a24;
+    --panel: rgba(20, 12, 40, 0.72);
+    --ink: #f3ecff;
+    --muted: #a99cc8;
+    --pink: #ff2e88;
+    --cyan: #19f0ff;
+    --amber: #ffb627;
+    --red: #ff3b5c;
+    --green: #39ff9f;
+    --line: var(--pink);
+    --deco: "Limelight", "Poiret One", serif;
+    --thin: "Poiret One", sans-serif;
+    --body: "Josefin Sans", system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { min-height: 100%; }
+  body {
+    background:
+      radial-gradient(120% 60% at 50% -10%, rgba(255,46,136,.28), transparent 60%),
+      radial-gradient(90% 50% at 100% 100%, rgba(25,240,255,.18), transparent 60%),
+      linear-gradient(180deg, var(--bg2), var(--bg) 70%);
+    background-attachment: fixed;
+    color: var(--ink);
+    font-family: var(--body);
+    display: flex;
+    flex-direction: column;
+    padding: env(safe-area-inset-top) 16px env(safe-area-inset-bottom);
+  }
+  /* faint scanlines + rain */
+  body::before {
+    content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    background: repeating-linear-gradient(0deg, rgba(255,255,255,.025) 0 1px, transparent 1px 3px);
+  }
+  body::after {
+    content: ""; position: fixed; inset: -50% 0 0; pointer-events: none; z-index: 0;
+    background: repeating-linear-gradient(100deg, transparent 0 18px, rgba(25,240,255,.05) 18px 19px);
+    animation: rain 1.2s linear infinite;
+  }
+  @keyframes rain { to { transform: translateY(50%); } }
+  @media (prefers-reduced-motion: reduce) { body::after { animation: none; } }
+
+  .wrap { position: relative; z-index: 1; width: 100%; max-width: 560px; margin: 0 auto; flex: 1; display: flex; flex-direction: column; }
+
+  header { text-align: center; padding: 28px 0 18px; }
+  .deco-rule {
+    height: 14px; margin: 0 auto 14px; width: 70%;
+    background:
+      linear-gradient(90deg, transparent, var(--amber), transparent) center/100% 1px no-repeat,
+      linear-gradient(90deg, transparent, var(--amber), transparent) center 0/60% 1px no-repeat,
+      linear-gradient(90deg, transparent, var(--amber), transparent) center 100%/60% 1px no-repeat;
+    opacity: .8;
+  }
+  h1 {
+    font-family: var(--deco); font-weight: 400;
+    font-size: clamp(2.6rem, 13vw, 4rem); letter-spacing: .08em;
+    color: #fff;
+    text-shadow: 0 0 6px var(--pink), 0 0 18px var(--pink), 0 0 42px rgba(255,46,136,.7);
+    animation: flicker 7s infinite;
+  }
+  h1 span { color: var(--cyan); text-shadow: 0 0 6px var(--cyan), 0 0 18px var(--cyan), 0 0 42px rgba(25,240,255,.6); }
+  @keyframes flicker { 0%,92%,100% { opacity: 1 } 93% { opacity: .55 } 94% { opacity: 1 } 96% { opacity: .7 } }
+  .tag { font-family: var(--thin); color: var(--muted); letter-spacing: .35em; text-transform: uppercase; font-size: .8rem; margin-top: 6px; }
+
+  .picker { margin: 8px 0 16px; }
+  .picker label { display: block; font-family: var(--thin); letter-spacing: .25em; text-transform: uppercase; font-size: .8rem; color: var(--amber); margin-bottom: 8px; }
+  .select-box { position: relative; }
+  select {
+    -webkit-appearance: none; appearance: none; width: 100%;
+    font: 600 1.15rem var(--body); color: var(--ink);
+    background: var(--panel); border: 1px solid var(--line);
+    border-radius: 4px; padding: 14px 44px 14px 16px;
+    box-shadow: 0 0 0 1px rgba(0,0,0,.4) inset, 0 0 16px -4px var(--line);
+    transition: border-color .3s, box-shadow .3s;
+  }
+  select:focus { outline: 2px solid var(--cyan); outline-offset: 2px; }
+  select optgroup, select option { background: #120a24; color: var(--ink); }
+  .select-box::after {
+    content: ""; position: absolute; right: 18px; top: 50%; width: 10px; height: 10px;
+    border-right: 2px solid var(--cyan); border-bottom: 2px solid var(--cyan);
+    transform: translateY(-70%) rotate(45deg); pointer-events: none;
+  }
+
+  .stop-title { text-align: center; margin: 4px 0 12px; }
+  .stop-title h2 { font-family: var(--deco); font-weight: 400; font-size: clamp(1.6rem, 7vw, 2.1rem); letter-spacing: .04em; color: #fff; text-shadow: 0 0 12px var(--line); }
+  .line-badge { display: inline-block; margin-top: 6px; font-size: .75rem; font-weight: 700; letter-spacing: .3em; text-transform: uppercase; padding: 4px 10px; border: 1px solid var(--line); color: var(--line); border-radius: 2px; box-shadow: 0 0 10px -2px var(--line); }
+
+  .message {
+    border-left: 3px solid var(--amber); background: rgba(255,182,39,.08);
+    padding: 12px 14px; margin-bottom: 16px; font-size: 1rem; line-height: 1.4; color: #ffe6b3;
+  }
+  .message:empty { display: none; }
+
+  .error {
+    border: 1px solid var(--red); background: rgba(255,59,92,.12); color: #ffd0d8;
+    padding: 12px 14px; margin-bottom: 16px; border-radius: 4px; font-size: .95rem; line-height: 1.4;
+    box-shadow: 0 0 18px -6px var(--red);
+  }
+  .error strong { color: var(--red); letter-spacing: .15em; text-transform: uppercase; font-size: .8rem; display: block; margin-bottom: 4px; }
+  .error[hidden] { display: none; }
+
+  .board { display: grid; gap: 16px; }
+  @media (min-width: 520px) { .board { grid-template-columns: 1fr 1fr; } }
+
+  .dir {
+    position: relative; background: var(--panel);
+    border: 1px solid rgba(255,255,255,.08); border-radius: 6px; padding: 16px 16px 8px;
+    backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+    clip-path: polygon(0 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, 18px 100%, 0 calc(100% - 18px));
+  }
+  .dir::before {
+    content: ""; position: absolute; left: 0; right: 0; top: 0; height: 2px;
+    background: linear-gradient(90deg, var(--line), var(--cyan));
+    box-shadow: 0 0 12px var(--line);
+  }
+  .dir h3 {
+    font-family: var(--thin); font-weight: 400; font-size: 1rem; letter-spacing: .35em; text-transform: uppercase;
+    color: var(--cyan); margin-bottom: 8px; text-shadow: 0 0 8px rgba(25,240,255,.6);
+  }
+  .tram { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 0; border-top: 1px dashed rgba(255,255,255,.1); }
+  .tram:first-of-type { border-top: 0; }
+  .dest { font-size: 1.15rem; font-weight: 600; line-height: 1.2; overflow-wrap: anywhere; }
+  .due { text-align: right; white-space: nowrap; font-family: var(--deco); line-height: 1; }
+  .due .n { font-size: clamp(2.4rem, 12vw, 3.2rem); color: var(--amber); text-shadow: 0 0 10px rgba(255,182,39,.8), 0 0 28px rgba(255,182,39,.4); font-variant-numeric: tabular-nums; }
+  .due .u { font-family: var(--thin); font-size: .9rem; color: var(--muted); margin-left: 4px; letter-spacing: .1em; }
+  .due.now .n { color: var(--green); text-shadow: 0 0 10px var(--green), 0 0 28px rgba(57,255,159,.5); font-size: clamp(2rem, 10vw, 2.6rem); animation: pulse 1.4s ease-in-out infinite; }
+  @keyframes pulse { 50% { opacity: .55 } }
+  .empty { color: var(--muted); padding: 12px 0 14px; font-style: italic; }
+
+  .status { display: flex; align-items: center; justify-content: center; gap: 10px; margin: 18px 0 8px; font-size: .85rem; color: var(--muted); letter-spacing: .08em; flex-wrap: wrap; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); box-shadow: 0 0 8px var(--green); }
+  .status.loading .dot { background: var(--amber); box-shadow: 0 0 8px var(--amber); animation: pulse .8s infinite; }
+  .status.bad .dot { background: var(--red); box-shadow: 0 0 8px var(--red); }
+  button.refresh {
+    font: 600 .75rem var(--body); letter-spacing: .2em; text-transform: uppercase;
+    background: transparent; color: var(--cyan); border: 1px solid var(--cyan); padding: 6px 10px; border-radius: 2px; cursor: pointer;
+  }
+  button.refresh:focus-visible { outline: 2px solid var(--pink); outline-offset: 2px; }
+
+  footer { position: relative; z-index: 1; text-align: center; padding: 24px 0 28px; font-family: var(--thin); font-size: .9rem; color: var(--muted); letter-spacing: .05em; line-height: 1.5; }
+  footer::before { content: "◆ ◆ ◆"; display: block; color: var(--pink); letter-spacing: .6em; margin-bottom: 10px; text-shadow: 0 0 8px var(--pink); font-size: .7rem; }
+
+  .skeleton { height: 1.2em; border-radius: 3px; background: linear-gradient(90deg, rgba(255,255,255,.05), rgba(255,255,255,.14), rgba(255,255,255,.05)); background-size: 200% 100%; animation: shimmer 1.2s infinite; margin: 14px 0; }
+  @keyframes shimmer { to { background-position: -200% 0; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="deco-rule"></div>
+    <h1>my<span>LUAS</span></h1>
+    <p class="tag">Dublin · Live Trams</p>
+  </header>
+
+  <div class="picker">
+    <label for="stop">Your stop</label>
+    <div class="select-box">
+      <select id="stop" disabled><option>Loading stops…</option></select>
+    </div>
+  </div>
+
+  <div id="error" class="error" role="alert" hidden></div>
+
+  <div class="stop-title">
+    <h2 id="stopName">—</h2>
+    <span id="lineBadge" class="line-badge" hidden></span>
+  </div>
+
+  <div id="message" class="message" aria-live="polite"></div>
+
+  <main id="board" class="board" aria-live="polite">
+    <section class="dir"><h3>Inbound</h3><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></section>
+    <section class="dir"><h3>Outbound</h3><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></section>
+  </main>
+
+  <div id="status" class="status loading">
+    <span class="dot"></span>
+    <span id="updated">Connecting…</span>
+    <button id="refreshBtn" class="refresh" type="button">Refresh</button>
+  </div>
+</div>
+
+<footer>Data: Transport Infrastructure Ireland. Built by Kathy K for BDAIB.</footer>
+
+<script>
+(function () {
+  "use strict";
+
+  var API = "https://luas-class.kluxy.app";
+  var STORAGE_KEY = "myluas.stop";
+  var DEFAULT_STOP = "MYS";
+  var REFRESH_MS = 20000;
+  var TIMEOUT_MS = 10000;
+
+  var els = {
+    select: document.getElementById("stop"),
+    error: document.getElementById("error"),
+    stopName: document.getElementById("stopName"),
+    lineBadge: document.getElementById("lineBadge"),
+    message: document.getElementById("message"),
+    board: document.getElementById("board"),
+    status: document.getElementById("status"),
+    updated: document.getElementById("updated"),
+    refreshBtn: document.getElementById("refreshBtn")
+  };
+
+  var stopsById = {};
+  var currentStop = loadStop();
+  var timer = null;
+  var requestId = 0;
+
+  // ---------- storage (wrapped: can fail in private mode) ----------
+  function loadStop() {
+    try { return localStorage.getItem(STORAGE_KEY) || DEFAULT_STOP; }
+    catch (e) { return DEFAULT_STOP; }
+  }
+  function saveStop(id) {
+    try { localStorage.setItem(STORAGE_KEY, id); } catch (e) { /* ignore */ }
+  }
+
+  // ---------- helpers ----------
+  function escapeHtml(s) {
+    return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+
+  function fetchJson(url) {
+    var ctrl = typeof AbortController !== "undefined" ? new AbortController() : null;
+    var t = ctrl ? setTimeout(function () { ctrl.abort(); }, TIMEOUT_MS) : null;
+    return fetch(url, ctrl ? { signal: ctrl.signal, cache: "no-store" } : { cache: "no-store" })
+      .then(function (res) {
+        if (!res.ok) {
+          return res.text().then(function (body) {
+            var detail = "";
+            try { var j = JSON.parse(body); detail = j.error || j.message || ""; } catch (e) {}
+            throw new Error("Server replied " + res.status + (res.statusText ? " " + res.statusText : "") + (detail ? " — " + detail : ""));
+          });
+        }
+        return res.json().catch(function () { throw new Error("The server sent something that isn't valid JSON."); });
+      })
+      .catch(function (err) {
+        if (err && err.name === "AbortError") throw new Error("The request timed out after " + (TIMEOUT_MS / 1000) + " seconds.");
+        if (err instanceof TypeError) throw new Error("Couldn't reach the Luas relay (" + err.message + "). Check your connection.");
+        throw err;
+      })
+      .finally(function () { if (t) clearTimeout(t); });
+  }
+
+  function showError(msg) {
+    els.error.innerHTML = "<strong>Signal lost</strong>" + escapeHtml(msg);
+    els.error.hidden = false;
+    els.status.className = "status bad";
+  }
+  function clearError() {
+    els.error.hidden = true;
+    els.error.innerHTML = "";
+  }
+
+  function setLineColour(line) {
+    var colour = line === "green" ? "var(--green)" : "var(--pink)";
+    document.documentElement.style.setProperty("--line", colour);
+    if (line) {
+      els.lineBadge.textContent = line === "green" ? "Green Line" : "Red Line";
+      els.lineBadge.hidden = false;
+    } else {
+      els.lineBadge.hidden = true;
+    }
+  }
+
+  function formatDue(due) {
+    var n = typeof due === "number" ? due : parseInt(due, 10);
+    if (due === 0 || n === 0 || (typeof due === "string" && /^due$/i.test(due))) {
+      return '<div class="due now"><span class="n">Due</span></div>';
+    }
+    if (isNaN(n)) return '<div class="due"><span class="n">' + escapeHtml(due) + "</span></div>";
+    return '<div class="due"><span class="n">' + n + '</span><span class="u">min</span></div>';
+  }
+
+  // ---------- stops ----------
+  function loadStops() {
+    return fetchJson(API + "/stops").then(function (data) {
+      if (!data || !Array.isArray(data.stops) || !data.stops.length) {
+        throw new Error("The stop list came back empty.");
+      }
+      var groups = { red: [], green: [] };
+      data.stops.forEach(function (s) {
+        stopsById[s.id] = s;
+        (groups[s.line] || (groups[s.line] = [])).push(s);
+      });
+
+      var html = "";
+      [["red", "Red Line"], ["green", "Green Line"]].forEach(function (g) {
+        var list = groups[g[0]];
+        if (!list || !list.length) return;
+        html += '<optgroup label="' + g[1] + '">';
+        list.forEach(function (s) {
+          html += '<option value="' + escapeHtml(s.id) + '">' + escapeHtml(s.name) + "</option>";
+        });
+        html += "</optgroup>";
+      });
+      els.select.innerHTML = html;
+
+      if (!stopsById[currentStop]) currentStop = stopsById[DEFAULT_STOP] ? DEFAULT_STOP : data.stops[0].id;
+      els.select.value = currentStop;
+      els.select.disabled = false;
+      setLineColour(stopsById[currentStop] && stopsById[currentStop].line);
+    });
+  }
+
+  // ---------- forecast ----------
+  function renderForecast(data) {
+    var stop = stopsById[currentStop];
+    els.stopName.textContent = data.stopName || (stop && stop.name) || currentStop;
+    els.message.textContent = data.message || "";
+
+    var dirs = Array.isArray(data.directions) ? data.directions : [];
+    if (!dirs.length) {
+      els.board.innerHTML = '<section class="dir"><h3>No data</h3><p class="empty">No trams are listed for this stop right now.</p></section>';
+      return;
+    }
+
+    els.board.innerHTML = dirs.map(function (d) {
+      var trams = (Array.isArray(d.trams) ? d.trams : []).slice(0, 3);
+      var rows = trams.length
+        ? trams.map(function (t) {
+            return '<div class="tram"><div class="dest">' + escapeHtml(t.destination) + "</div>" + formatDue(t.due) + "</div>";
+          }).join("")
+        : '<p class="empty">No trams scheduled.</p>';
+      return '<section class="dir"><h3>' + escapeHtml(d.name) + "</h3>" + rows + "</section>";
+    }).join("");
+  }
+
+  function refresh() {
+    var myId = ++requestId;
+    els.status.className = "status loading";
+
+    var ready = Object.keys(stopsById).length ? Promise.resolve() : loadStops();
+
+    return ready
+      .then(function () {
+        return fetchJson(API + "/forecast?stop=" + encodeURIComponent(currentStop));
+      })
+      .then(function (data) {
+        if (myId !== requestId) return; // a newer request has started; drop this one
+        if (data && data.error) throw new Error(data.error);
+        renderForecast(data);
+        clearError();
+        els.status.className = "status";
+        els.updated.textContent = "Last updated " + new Date().toLocaleTimeString("en-IE", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+      })
+      .catch(function (err) {
+        if (myId !== requestId) return;
+        showError(err && err.message ? err.message : String(err));
+        if (!/Last updated/.test(els.updated.textContent)) els.updated.textContent = "Not updated yet";
+      });
+  }
+
+  function schedule() {
+    clearInterval(timer);
+    timer = setInterval(refresh, REFRESH_MS);
+  }
+
+  // ---------- events ----------
+  els.select.addEventListener("change", function () {
+    currentStop = els.select.value;
+    saveStop(currentStop);
+    var s = stopsById[currentStop];
+    setLineColour(s && s.line);
+    els.stopName.textContent = s ? s.name : currentStop;
+    els.message.textContent = "";
+    refresh();
+    schedule();
+  });
+
+  els.refreshBtn.addEventListener("click", function () { refresh(); schedule(); });
+
+  // Refresh straight away when the phone/tab comes back into view
+  document.addEventListener("visibilitychange", function () {
+    if (!document.hidden) { refresh(); schedule(); }
+  });
+
+  window.addEventListener("error", function (e) { showError("Unexpected error: " + e.message); });
+  window.addEventListener("unhandledrejection", function (e) {
+    showError("Unexpected error: " + (e.reason && e.reason.message ? e.reason.message : e.reason));
+  });
+
+  // ---------- start ----------
+  refresh();
+  schedule();
+})();
+</script>
+</body>
+</html>
